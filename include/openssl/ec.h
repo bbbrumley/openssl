@@ -159,6 +159,11 @@ const EC_METHOD *EC_GFp_nistp521_method(void);
 #  endif
 # endif
 
+/** TODO BBB FourQ
+ *  \return  EC_METHOD object
+ */
+const EC_METHOD *EC_GFp_fourq_method(void);
+
 # ifndef OPENSSL_NO_EC2M
 /********************************************************************/
 /*           EC_METHOD for curves over GF(2^m)                      */

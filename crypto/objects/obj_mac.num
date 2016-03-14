@@ -1055,3 +1055,4 @@ fips_none		1054
 fips_140_2		1055
 blake2b512		1056
 blake2s256		1057
+ms_fourq		1058

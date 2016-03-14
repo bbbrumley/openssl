@@ -4614,3 +4614,8 @@
 #define SN_auth_null            "AuthNULL"
 #define LN_auth_null            "auth-null"
 #define NID_auth_null           1053
+
+#define SN_ms_fourq             "msFourQ"
+#define LN_ms_fourq             "Microsoft FourQ Elliptic Curve"
+#define NID_ms_fourq            1058
+#define OBJ_ms_fourq            1L,3L,6L,1L,4L,1L,311L,89L,1L,10L
