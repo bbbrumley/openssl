@@ -67,7 +67,9 @@ plan skip_all => "TLSProxy isn't usable on $^O"
 plan skip_all => "$test_name needs the dynamic engine feature enabled"
     if disabled("engine") || disabled("dynamic-engine");
 
-$ENV{OPENSSL_ENGINES} = bldtop_dir("engines");
+plan skip_all => "$test_name needs the sock feature enabled"
+    if disabled("sock");
+
 $ENV{OPENSSL_ia32cap} = '~0x200000200000000';
 
 sub checkmessages($$$$$);
@@ -82,7 +84,7 @@ my $fullhand = 0;
 
 my $proxy = TLSProxy::Proxy->new(
     \&extms_filter,
-    cmdstr(app(["openssl"])),
+    cmdstr(app(["openssl"]), display => 1),
     srctop_file("apps", "server.pem"),
     (!$ENV{HARNESS_ACTIVE} || $ENV{HARNESS_VERBOSE})
 );
@@ -136,7 +138,7 @@ setrmextms(0, 0);
 $proxy->serverconnects(2);
 $proxy->clientflags("-sess_out ".$session);
 $proxy->start();
-$proxy->clear();
+$proxy->clearClient();
 $proxy->clientflags("-sess_in ".$session);
 $proxy->clientstart();
 checkmessages(5, "Session resumption extended master secret test", 1, 1, 0);
@@ -152,7 +154,7 @@ setrmextms(1, 0);
 $proxy->serverconnects(2);
 $proxy->clientflags("-sess_out ".$session);
 $proxy->start();
-$proxy->clear();
+$proxy->clearClient();
 $proxy->clientflags("-sess_in ".$session);
 setrmextms(0, 0);
 $proxy->clientstart();
@@ -168,7 +170,7 @@ setrmextms(0, 0);
 $proxy->serverconnects(2);
 $proxy->clientflags("-sess_out ".$session);
 $proxy->start();
-$proxy->clear();
+$proxy->clearClient();
 $proxy->clientflags("-sess_in ".$session);
 setrmextms(1, 0);
 $proxy->clientstart();
@@ -184,7 +186,7 @@ setrmextms(0, 0);
 $proxy->serverconnects(2);
 $proxy->clientflags("-sess_out ".$session);
 $proxy->start();
-$proxy->clear();
+$proxy->clearClient();
 $proxy->clientflags("-sess_in ".$session);
 setrmextms(0, 1);
 $proxy->clientstart();
@@ -200,7 +202,7 @@ setrmextms(0, 1);
 $proxy->serverconnects(2);
 $proxy->clientflags("-sess_out ".$session);
 $proxy->start();
-$proxy->clear();
+$proxy->clearClient();
 $proxy->clientflags("-sess_in ".$session);
 setrmextms(0, 0);
 $proxy->clientstart();

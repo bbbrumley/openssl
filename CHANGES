@@ -4,6 +4,50 @@
 
  Changes between 1.0.2g and 1.1.0  [xx XXX xxxx]
 
+  *) --strict-warnings no longer enables runtime debugging options
+     such as REF_DEBUG. Instead, debug options are automatically
+     enabled with '--debug' builds.
+     [Andy Polyakov, Emilia Käsper]
+
+  *) Made DH and DH_METHOD opaque. The structures for managing DH objects
+     have been moved out of the public header files. New functions for managing
+     these have been added.
+     [Matt Caswell]
+
+  *) Made RSA and RSA_METHOD opaque. The structures for managing RSA
+     objects have been moved out of the public header files. New
+     functions for managing these have been added.
+     [Richard Levitte]
+
+  *) Made DSA and DSA_METHOD opaque. The structures for managing DSA objects
+     have been moved out of the public header files. New functions for managing
+     these have been added.
+     [Matt Caswell]
+
+  *) Made BIO and BIO_METHOD opaque. The structures for managing BIOs have been
+     moved out of the public header files. New functions for managing these
+     have been added.
+     [Matt Caswell]
+
+  *) Removed no-rijndael as a config option. Rijndael is an old name for AES.
+     [Matt Caswell]
+
+  *) Removed the mk1mf build scripts.
+     [Richard Levitte]
+
+  *) Headers are now wrapped, if necessary, with OPENSSL_NO_xxx, so
+     it is always safe to #include a header now.
+     [Rich Salz]
+
+  *) Removed the aged BC-32 config and all its supporting scripts
+     [Richard Levitte]
+
+  *) Removed support for Ultrix, Netware, and OS/2.
+     [Rich Salz]
+
+  *) Add support for HKDF.
+     [Alessandro Ghedini]
+
   *) Add support for blake2b and blake2s
      [Bill Cox]
 
@@ -34,9 +78,6 @@
      [Todd Short]
 
   *) Add SSL_CIPHER queries for authentication and key-exchange.
-
-  *) Modify behavior of ALPN to invoke callback after SNI/servername
-     callback, such that updates to the SSL_CTX affect ALPN.
      [Todd Short]
 
   *) Changes to the DEFAULT cipherlist:

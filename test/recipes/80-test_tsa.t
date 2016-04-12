@@ -7,8 +7,12 @@ use POSIX;
 use File::Spec::Functions qw/splitdir curdir catfile/;
 use File::Compare;
 use OpenSSL::Test qw/:DEFAULT cmdstr srctop_file/;
+use OpenSSL::Test::Utils;
 
 setup("test_tsa");
+
+plan skip_all => "TS is not supported by this OpenSSL build"
+    if disabled("ts");
 
 # All these are modified inside indir further down. They need to exist
 # here, however, to be available in all subroutines.
@@ -75,7 +79,7 @@ indir "tsa" => sub
     $ENV{OPENSSL_CONF} = srctop_file("test", "CAtsa.cnf");
     # Because that's what ../apps/CA.pl really looks at
     $ENV{OPENSSL_CONFIG} = "-config ".$ENV{OPENSSL_CONF};
-    $ENV{OPENSSL} = cmdstr(app(["openssl"]));
+    $ENV{OPENSSL} = cmdstr(app(["openssl"]), display => 1);
     $testtsa = srctop_file("test", "recipes", "80-test_tsa.t");
     $CAtsa = srctop_file("test", "CAtsa.cnf");
 
@@ -98,7 +102,7 @@ indir "tsa" => sub
 
      skip "failed", 16
          unless ok(run(app([@RUN, "-query", "-data", $testtsa,
-                            "-policy", "tsa_policy1", "-cert",
+                            "-tspolicy", "tsa_policy1", "-cert",
                             "-out", "req1.tsq"])),
                    'creating req1.req time stamp request for file testtsa');
 
@@ -132,7 +136,7 @@ indir "tsa" => sub
 
      skip "failed", 10
          unless ok(run(app([@RUN, "-query", "-data", $testtsa,
-                            "-policy", "tsa_policy2", "-no_nonce",
+                            "-tspolicy", "tsa_policy2", "-no_nonce",
                             "-out", "req2.tsq"])),
                    'creating req2.req time stamp request for file testtsa');
 

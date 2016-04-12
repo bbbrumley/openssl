@@ -176,14 +176,18 @@ static int apps_startup()
                              | OPENSSL_INIT_LOAD_CONFIG, NULL))
         return 0;
 
+#ifndef OPENSSL_NO_UI
     setup_ui_method();
+#endif
 
     return 1;
 }
 
 static void apps_shutdown()
 {
+#ifndef OPENSSL_NO_UI
     destroy_ui_method();
+#endif
 }
 
 static char *make_config_name()
@@ -207,10 +211,6 @@ static char *make_config_name()
     return p;
 }
 
-#if defined( OPENSSL_SYS_VMS)
-extern char **copy_argv(int *argc, char **argv);
-#endif
-
 int main(int argc, char *argv[])
 {
     FUNCTION f, *fp;
@@ -229,9 +229,9 @@ int main(int argc, char *argv[])
     default_config_file = make_config_name();
     bio_in = dup_bio_in(FORMAT_TEXT);
     bio_out = dup_bio_out(FORMAT_TEXT);
-    bio_err = BIO_new_fp(stderr, BIO_NOCLOSE | BIO_FP_TEXT);
+    bio_err = dup_bio_err(FORMAT_TEXT);
 
-#if defined( OPENSSL_SYS_VMS)
+#if defined(OPENSSL_SYS_VMS) && defined(__DECC)
     copied_argv = argv = copy_argv(&argc, argv);
 #endif
 

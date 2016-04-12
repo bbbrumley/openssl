@@ -562,12 +562,11 @@ int x509_main(int argc, char **argv)
             goto end;
         }
 
-        if ((pkey = X509_REQ_get_pubkey(req)) == NULL) {
+        if ((pkey = X509_REQ_get0_pubkey(req)) == NULL) {
             BIO_printf(bio_err, "error unpacking public key\n");
             goto end;
         }
         i = X509_REQ_verify(req, pkey);
-        EVP_PKEY_free(pkey);
         if (i < 0) {
             BIO_printf(bio_err, "Signature verification error\n");
             ERR_print_errors(bio_err);
@@ -607,9 +606,8 @@ int x509_main(int argc, char **argv)
         if (fkey)
             X509_set_pubkey(x, fkey);
         else {
-            pkey = X509_REQ_get_pubkey(req);
+            pkey = X509_REQ_get0_pubkey(req);
             X509_set_pubkey(x, pkey);
-            EVP_PKEY_free(pkey);
         }
     } else
         x = load_cert(infile, informat, "Certificate");
@@ -729,16 +727,22 @@ int x509_main(int argc, char **argv)
                 }
                 BIO_printf(out, "Modulus=");
 #ifndef OPENSSL_NO_RSA
-                if (EVP_PKEY_id(pkey) == EVP_PKEY_RSA)
-                    BN_print(out, EVP_PKEY_get0_RSA(pkey)->n);
-                else
+                if (EVP_PKEY_id(pkey) == EVP_PKEY_RSA) {
+                    BIGNUM *n;
+                    RSA_get0_key(EVP_PKEY_get0_RSA(pkey), &n, NULL, NULL);
+                    BN_print(out, n);
+                } else
 #endif
 #ifndef OPENSSL_NO_DSA
-                if (EVP_PKEY_id(pkey) == EVP_PKEY_DSA)
-                    BN_print(out, EVP_PKEY_get0_DSA(pkey)->pub_key);
-                else
+                if (EVP_PKEY_id(pkey) == EVP_PKEY_DSA) {
+                    BIGNUM *dsapub = NULL;
+                    DSA_get0_key(EVP_PKEY_get0_DSA(pkey), &dsapub, NULL);
+                    BN_print(out, dsapub);
+                } else
 #endif
+                {
                     BIO_printf(out, "Wrong Algorithm type");
+                }
                 BIO_printf(out, "\n");
             } else if (pubkey == i) {
                 EVP_PKEY *pkey;

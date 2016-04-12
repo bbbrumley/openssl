@@ -262,7 +262,7 @@ struct x509_store_ctx_st {      /* X509_STORE_CTX */
     /* For CRL path validation: parent context */
     X509_STORE_CTX *parent;
     CRYPTO_EX_DATA ex_data;
-    struct dane_st *dane;
+    SSL_DANE *dane;
     /* signed via bare TA public key, rather than CA certificate */
     int bare_ta_signed;
 } /* X509_STORE_CTX */ ;
@@ -355,7 +355,10 @@ void X509_STORE_CTX_set_depth(X509_STORE_CTX *ctx, int depth);
 # define         X509_V_ERR_IP_ADDRESS_MISMATCH                  64
 /* DANE TLSA errors */
 # define         X509_V_ERR_DANE_NO_MATCH                        65
-
+/* security level errors */
+# define         X509_V_ERR_EE_KEY_TOO_SMALL                     66
+# define         X509_V_ERR_CA_KEY_TOO_SMALL                     67
+# define         X509_V_ERR_CA_MD_TOO_WEAK                       68
 
 /* Certificate verify flags */
 
@@ -533,7 +536,7 @@ int X509_STORE_CTX_set_default(X509_STORE_CTX *ctx, const char *name);
  * Bridge opacity barrier between libcrypt and libssl, also needed to support
  * offline testing in test/danetest.c
  */
-void X509_STORE_CTX_set0_dane(X509_STORE_CTX *ctx, struct dane_st *dane);
+void X509_STORE_CTX_set0_dane(X509_STORE_CTX *ctx, SSL_DANE *dane);
 
 /* X509_VERIFY_PARAM functions */
 
@@ -552,6 +555,7 @@ unsigned long X509_VERIFY_PARAM_get_flags(X509_VERIFY_PARAM *param);
 int X509_VERIFY_PARAM_set_purpose(X509_VERIFY_PARAM *param, int purpose);
 int X509_VERIFY_PARAM_set_trust(X509_VERIFY_PARAM *param, int trust);
 void X509_VERIFY_PARAM_set_depth(X509_VERIFY_PARAM *param, int depth);
+void X509_VERIFY_PARAM_set_auth_level(X509_VERIFY_PARAM *param, int auth_level);
 void X509_VERIFY_PARAM_set_time(X509_VERIFY_PARAM *param, time_t t);
 int X509_VERIFY_PARAM_add0_policy(X509_VERIFY_PARAM *param,
                                   ASN1_OBJECT *policy);
@@ -574,6 +578,7 @@ int X509_VERIFY_PARAM_set1_ip_asc(X509_VERIFY_PARAM *param,
                                   const char *ipasc);
 
 int X509_VERIFY_PARAM_get_depth(const X509_VERIFY_PARAM *param);
+int X509_VERIFY_PARAM_get_auth_level(const X509_VERIFY_PARAM *param);
 const char *X509_VERIFY_PARAM_get0_name(const X509_VERIFY_PARAM *param);
 
 int X509_VERIFY_PARAM_add0_table(X509_VERIFY_PARAM *param);
