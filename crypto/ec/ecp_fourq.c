@@ -33,6 +33,10 @@
 
 #include <FourQ.h>
 
+/* TODO BBB locking API changed. This is a hack. */
+#define CRYPTO_add(a,b,c)       ((*(a))+=(b))
+#define CRYPTO_LOCK_EC_PRE_COMP 0
+
 /* precomp management */
 typedef struct {
     void *T_fixed;
