@@ -66,12 +66,7 @@ EC_GROUP *EC_GROUP_new_curve_GF2m(const BIGNUM *p, const BIGNUM *a,
     const EC_METHOD *meth;
     EC_GROUP *ret;
 
-    if (BN_is_zero(a) || BN_is_one(a)) {
-        meth = EC_GF2m_lambda_method();
-    }
-    else {
-        meth = EC_GF2m_simple_method();
-    }
+    meth = EC_GF2m_simple_method();
 
     ret = EC_GROUP_new(meth);
     if (ret == NULL)
