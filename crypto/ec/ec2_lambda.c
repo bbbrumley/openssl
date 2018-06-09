@@ -9,8 +9,8 @@
  * "external"-facing interface to handle the conversion
  * to/from the standard short form.
  *
- * See "Faster Binary Curve Software: A Case Study",
- * NordSec 2015, to appear.
+ * See "Faster Binary Curve Software: A Case Study", NordSec 2015
+ * https://doi.org/10.1007/978-3-319-26502-5_7
  *
  * @author Billy Brumley <billy.brumley AT tut DOT fi>
  */
@@ -78,6 +78,27 @@ const EC_METHOD *EC_GF2m_lambda_method(void)
 }
 
 /**
+ * Convience function.
+ * Computes A * x where A is the curve coefficient.
+ *
+ * @param x input field element
+ * @param r output field element
+ */
+static int ec_GF2m_lambda_field_mul_a(const EC_GROUP *group, BIGNUM *r,
+                                const BIGNUM *x, BN_CTX *ctx)
+{
+    if (BN_is_zero(group->a)) {
+        BN_zero(r);
+        return 1;
+    }
+
+    if (BN_is_one(group->a))
+        return BN_copy(r, x);
+
+    return group->meth->field_mul(group, r, x, group->a, ctx);
+}
+
+/**
  * Computes a + a and stores the result in r.
  * Src: EFD "dbl-2013-olar"
  *
@@ -87,7 +108,7 @@ const EC_METHOD *EC_GF2m_lambda_method(void)
 int ec_GF2m_lambda_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
                        BN_CTX *ctx)
 {
-    BIGNUM *t0, *t1, *t2, *t3;
+    BIGNUM *t0, *t1, *t2, *t3, *t4;
     int ret = 0;
 
     if (EC_POINT_is_at_infinity(group, a))
@@ -99,20 +120,22 @@ int ec_GF2m_lambda_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
     t1 = BN_CTX_get(ctx);
     t2 = BN_CTX_get(ctx);
     t3 = BN_CTX_get(ctx);
-    if (t3 == NULL
-            || !group->meth->field_sqr(group, t0, a->Y, ctx)
-            || !group->meth->field_mul(group, t3, a->Z, a->Y, ctx)
-            || !group->meth->field_sqr(group, t1, a->Z, ctx)
-            || !group->meth->field_mul(group, t2, a->X, a->Z, ctx)
-            || !BN_GF2m_add(t0, t3, t0)
-            || (BN_is_one(group->a) && !BN_GF2m_add(t0, t0, t1))
-            || !group->meth->field_sqr(group, r->X, t0, ctx)
-            || !group->meth->field_mul(group, r->Z, t1, t0, ctx)
-            || !group->meth->field_mul(group, t0, t3, t0, ctx)
-            || !group->meth->field_sqr(group, t2, t2, ctx)
-            || !BN_GF2m_add(t0, r->Z, t0)
-            || !BN_GF2m_add(t0, t0, r->X)
-            || !BN_GF2m_add(r->Y, t0, t2))
+    t4 = BN_CTX_get(ctx);
+    if (t4 == NULL
+        || !group->meth->field_mul(group, t3, a->Z, a->Z, ctx)
+        || !group->meth->field_mul(group, t4, a->Z, a->Y, ctx)
+        || !group->meth->field_mul(group, t1, a->Y, a->Y, ctx)
+        || !ec_GF2m_lambda_field_mul_a(group, t2, t3, ctx)
+        || !group->meth->field_mul(group, t0, a->X, a->Z, ctx)
+        || !BN_GF2m_add(t1, t4, t1)
+        || !BN_GF2m_add(t2, t2, t1)
+        || !group->meth->field_mul(group, t0, t0, t0, ctx)
+        || !group->meth->field_mul(group, r->X, t2, t2, ctx)
+        || !group->meth->field_mul(group, r->Z, t2, t3, ctx)
+        || !BN_GF2m_add(t1, r->X, t0)
+        || !group->meth->field_mul(group, t0, t2, t4, ctx)
+        || !BN_GF2m_add(t0, t0, t1)
+        || !BN_GF2m_add(r->Y, r->Z, t0))
         goto done;
     ret = 1;
 
@@ -432,7 +455,8 @@ int ec_GF2m_lambda_is_on_curve(const EC_GROUP *group, const EC_POINT *point,
             || !group->meth->field_mul(group, t2, point->Y, point->Z, ctx)
             || !BN_GF2m_add(t1, t1, t2)
             || !group->meth->field_sqr(group, t2, point->Z, ctx)
-            || (BN_is_one(group->a) && !BN_GF2m_add(t1, t1, t2))
+            || !ec_GF2m_lambda_field_mul_a(group, t3, t2, ctx)
+            || !BN_GF2m_add(t1, t1, t3)
             || !group->meth->field_sqr(group, t3, point->X, ctx)
             || !BN_GF2m_add(t1, t1, t3)
             || !group->meth->field_mul(group, t1, t1, t3, ctx)
