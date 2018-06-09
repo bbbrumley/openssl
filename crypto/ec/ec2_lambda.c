@@ -62,7 +62,16 @@ const EC_METHOD *EC_GF2m_lambda_method(void)
         ec_GF2m_simple_field_div,
         0 /* field_encode */ ,
         0 /* field_decode */ ,
-        0 /* field_set_to_one */
+        0 /* field_set_to_one */ ,
+        ec_key_simple_priv2oct,
+        ec_key_simple_oct2priv,
+        0, /* set private */
+        ec_key_simple_generate_key,
+        ec_key_simple_check_key,
+        ec_key_simple_generate_public_key,
+        0, /* keycopy */
+        0, /* keyfinish */
+        ecdh_simple_compute_key
     };
 
     return &ret;
@@ -358,7 +367,7 @@ int ec_GF2m_lambda_point_get_affine_coordinates(const EC_GROUP *group,
     }
     if (y != NULL) {
         if (!BN_GF2m_add(y, r->Y, r->X)
-                || !group->meth->field_mul(group, y, y, point->X, ctx))
+                || !group->meth->field_mul(group, y, y, r->X, ctx))
             goto done;
         BN_set_negative(y, 0);
     }
