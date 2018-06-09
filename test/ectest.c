@@ -62,6 +62,8 @@ static int group_order_tests(EC_GROUP *group)
              * EC_GROUP_precompute_mult has set up precomputation.
              */
             || !TEST_true(EC_POINT_mul(group, P, n1, NULL, NULL, ctx))
+            || (i == 1 && !TEST_int_eq(0, EC_POINT_cmp(group, P,
+                EC_GROUP_get0_generator(group), ctx)))
             || !TEST_true(BN_one(n1))
             /* n1 = 1 - order */
             || !TEST_true(BN_sub(n1, n1, order))
