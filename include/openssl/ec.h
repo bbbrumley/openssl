@@ -1439,6 +1439,14 @@ void EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
         EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, \
                                 EVP_PKEY_OP_DERIVE, \
                                 EVP_PKEY_CTRL_GET_EC_KDF_UKM, 0, (void *)(p))
+# define EVP_PKEY_CTX_set_ecdsa_nonce_type(ctx, nonce) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, \
+                                EVP_PKEY_OP_SIGN, \
+                                EVP_PKEY_CTRL_EC_NONCE_TYPE, nonce, NULL)
+# define EVP_PKEY_CTX_get_ecdsa_nonce_type(ctx) \
+        EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, \
+                                EVP_PKEY_OP_SIGN, \
+                                EVP_PKEY_CTRL_EC_NONCE_TYPE, -2, NULL)
 
 /* SM2 will skip the operation check so no need to pass operation here */
 # define EVP_PKEY_CTX_set1_id(ctx, id, id_len) \
@@ -1466,6 +1474,7 @@ void EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
 # define EVP_PKEY_CTRL_SET1_ID                           (EVP_PKEY_ALG_CTRL + 11)
 # define EVP_PKEY_CTRL_GET1_ID                           (EVP_PKEY_ALG_CTRL + 12)
 # define EVP_PKEY_CTRL_GET1_ID_LEN                       (EVP_PKEY_ALG_CTRL + 13)
+# define EVP_PKEY_CTRL_EC_NONCE_TYPE                     (EVP_PKEY_ALG_CTRL + 14)
 /* KDF types */
 # define EVP_PKEY_ECDH_KDF_NONE                          1
 # define EVP_PKEY_ECDH_KDF_X9_63                         2
@@ -1475,6 +1484,9 @@ void EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
  *  This identifier is retained for backwards compatibility
  */
 # define EVP_PKEY_ECDH_KDF_X9_62   EVP_PKEY_ECDH_KDF_X9_63
+/* ECDSA K (nonce) types */
+# define EVP_PKEY_ECDSA_NONCE_RANDOM                     1
+# define EVP_PKEY_ECDSA_NONCE_DETERMINISTIC              2
 
 
 #  ifdef  __cplusplus

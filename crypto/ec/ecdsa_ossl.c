@@ -14,25 +14,9 @@
 #include "internal/bn_int.h"
 #include "ec_lcl.h"
 
-int ossl_ecdsa_sign(int type, const unsigned char *dgst, int dlen,
-                    unsigned char *sig, unsigned int *siglen,
-                    const BIGNUM *kinv, const BIGNUM *r, EC_KEY *eckey)
-{
-    ECDSA_SIG *s;
-
-    s = ECDSA_do_sign_ex(dgst, dlen, kinv, r, eckey);
-    if (s == NULL) {
-        *siglen = 0;
-        return 0;
-    }
-    *siglen = i2d_ECDSA_SIG(s, &sig);
-    ECDSA_SIG_free(s);
-    return 1;
-}
-
 static int ecdsa_sign_setup(EC_KEY *eckey, BN_CTX *ctx_in,
                             BIGNUM **kinvp, BIGNUM **rp,
-                            const unsigned char *dgst, int dlen)
+                            const unsigned char *dgst, int dlen, int hashnid)
 {
     BN_CTX *ctx = NULL;
     BIGNUM *k = NULL, *r = NULL, *X = NULL;
@@ -41,6 +25,7 @@ static int ecdsa_sign_setup(EC_KEY *eckey, BN_CTX *ctx_in,
     const EC_GROUP *group;
     int ret = 0;
     int order_bits;
+    int kgen = 0;
 
     if (eckey == NULL || (group = EC_KEY_get0_group(eckey)) == NULL) {
         ECerr(EC_F_ECDSA_SIGN_SETUP, ERR_R_PASSED_NULL_PARAMETER);
@@ -80,22 +65,28 @@ static int ecdsa_sign_setup(EC_KEY *eckey, BN_CTX *ctx_in,
         goto err;
 
     do {
-        /* get random k */
+        /* get random or deterministic k */
         do {
             if (dgst != NULL) {
-                if (!BN_generate_dsa_nonce(k, order,
-                                           EC_KEY_get0_private_key(eckey),
-                                           dgst, dlen, ctx)) {
-                    ECerr(EC_F_ECDSA_SIGN_SETUP,
-                          EC_R_RANDOM_NUMBER_GENERATION_FAILED);
-                    goto err;
+#ifndef FIPS_MODE
+                if (hashnid <= 0) { /* random */
+#endif
+                    kgen = BN_generate_dsa_nonce(k, order,
+                        EC_KEY_get0_private_key(eckey),
+                        dgst, dlen, ctx);
+#ifndef FIPS_MODE
+                } else { /* deterministic */
+                    kgen = BN_generate_dsa_deterministic_nonce(k, order,
+                        EC_KEY_get0_private_key(eckey),
+                        dgst, dlen, hashnid, ctx);
                 }
-            } else {
-                if (!BN_priv_rand_range(k, order)) {
-                    ECerr(EC_F_ECDSA_SIGN_SETUP,
-                          EC_R_RANDOM_NUMBER_GENERATION_FAILED);
-                    goto err;
-                }
+#endif
+            } else { /* dgst = NULL & type = 0 */
+                kgen = BN_priv_rand_range(k, order);
+            }
+            if (!kgen) {
+                ECerr(EC_F_ECDSA_SIGN_SETUP, EC_R_RANDOM_NUMBER_GENERATION_FAILED);
+                goto err;
             }
         } while (BN_is_zero(k));
 
@@ -141,10 +132,36 @@ static int ecdsa_sign_setup(EC_KEY *eckey, BN_CTX *ctx_in,
     return ret;
 }
 
+int ossl_ecdsa_sign(int type, const unsigned char *dgst, int dlen,
+                    unsigned char *sig, unsigned int *siglen,
+                    const BIGNUM *kinv, const BIGNUM *r, EC_KEY *eckey)
+{
+    ECDSA_SIG *s;
+    const BIGNUM *ckinv, *cr;
+    if (kinv == NULL || r == NULL) {
+        BIGNUM *tmp_kinv = NULL, *tmp_r = NULL;
+        if (!ecdsa_sign_setup(eckey, BN_CTX_new(), &tmp_kinv, &tmp_r, dgst, dlen, type))
+            return 0;
+        ckinv = tmp_kinv;
+        cr = tmp_r;
+    } else {
+        ckinv = kinv;
+        cr = r;
+    }
+    s = ECDSA_do_sign_ex(dgst, dlen, ckinv, cr, eckey);
+    if (s == NULL) {
+        *siglen = 0;
+        return 0;
+    }
+    *siglen = i2d_ECDSA_SIG(s, &sig);
+    ECDSA_SIG_free(s);
+    return 1;
+}
+
 int ossl_ecdsa_sign_setup(EC_KEY *eckey, BN_CTX *ctx_in, BIGNUM **kinvp,
                           BIGNUM **rp)
 {
-    return ecdsa_sign_setup(eckey, ctx_in, kinvp, rp, NULL, 0);
+    return ecdsa_sign_setup(eckey, ctx_in, kinvp, rp, NULL, 0, 0);
 }
 
 ECDSA_SIG *ossl_ecdsa_sign_sig(const unsigned char *dgst, int dgst_len,
@@ -209,7 +226,7 @@ ECDSA_SIG *ossl_ecdsa_sign_sig(const unsigned char *dgst, int dgst_len,
     }
     do {
         if (in_kinv == NULL || in_r == NULL) {
-            if (!ecdsa_sign_setup(eckey, ctx, &kinv, &ret->r, dgst, dgst_len)) {
+            if (!ecdsa_sign_setup(eckey, ctx, &kinv, &ret->r, dgst, dgst_len, 0)) {
                 ECerr(EC_F_OSSL_ECDSA_SIGN_SIG, ERR_R_ECDSA_LIB);
                 goto err;
             }

@@ -36,6 +36,8 @@ typedef struct {
     size_t kdf_ukmlen;
     /* KDF output length */
     size_t kdf_outlen;
+	/* ECDSA K (nonce) type */
+    char nonce_type;
 } EC_PKEY_CTX;
 
 static int pkey_ec_init(EVP_PKEY_CTX *ctx)
@@ -49,6 +51,7 @@ static int pkey_ec_init(EVP_PKEY_CTX *ctx)
 
     dctx->cofactor_mode = -1;
     dctx->kdf_type = EVP_PKEY_ECDH_KDF_NONE;
+    dctx->nonce_type = EVP_PKEY_ECDSA_NONCE_RANDOM;
     ctx->data = dctx;
     return 1;
 }
@@ -121,8 +124,23 @@ static int pkey_ec_sign(EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen,
     }
 
     type = (dctx->md != NULL) ? EVP_MD_type(dctx->md) : NID_sha1;
-
-    ret = ECDSA_sign(type, tbs, tbslen, sig, &sltmp, ec);
+	
+    switch (dctx->nonce_type) {
+    case EVP_PKEY_ECDSA_NONCE_RANDOM:
+        ret = ECDSA_sign(0, tbs, tbslen, sig, &sltmp, ec);
+        break;
+    case EVP_PKEY_ECDSA_NONCE_DETERMINISTIC:
+        if (dctx->md == NULL) {
+            ECerr(EC_F_PKEY_EC_SIGN, EC_R_INVALID_DIGEST);
+            return 0;
+        } else {
+            ret = ECDSA_sign(type, tbs, tbslen, sig, &sltmp, ec);
+        }
+        break;
+    default:
+        ECerr(EC_F_PKEY_EC_SIGN, EC_R_INVALID_ARGUMENT);
+        return 0;
+	}
 
     if (ret <= 0)
         return ret;
@@ -317,6 +335,14 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         *(unsigned char **)p2 = dctx->kdf_ukm;
         return dctx->kdf_ukmlen;
 
+	case EVP_PKEY_CTRL_EC_NONCE_TYPE:
+		if (p1 == -2)
+			return dctx->nonce_type;
+		if (p1 != EVP_PKEY_ECDSA_NONCE_RANDOM && p1 != EVP_PKEY_ECDSA_NONCE_DETERMINISTIC)
+			return -2;
+		dctx->nonce_type = p1;
+		return 1;
+
     case EVP_PKEY_CTRL_MD:
         if (EVP_MD_type((const EVP_MD *)p2) != NID_sha1 &&
             EVP_MD_type((const EVP_MD *)p2) != NID_ecdsa_with_SHA1 &&
@@ -386,6 +412,16 @@ static int pkey_ec_ctrl_str(EVP_PKEY_CTX *ctx,
         int co_mode;
         co_mode = atoi(value);
         return EVP_PKEY_CTX_set_ecdh_cofactor_mode(ctx, co_mode);
+    }
+    else if (strcmp(type, "ecdsa_nonce_type") == 0) {
+        int nonce_type;
+        if (strcmp(value, "deterministic") == 0)
+            nonce_type = EVP_PKEY_ECDSA_NONCE_DETERMINISTIC;
+        else if (strcmp(value, "random") == 0)
+            nonce_type = EVP_PKEY_ECDSA_NONCE_RANDOM;
+        else
+            return -2;
+        return EVP_PKEY_CTX_set_ecdsa_nonce_type(ctx, nonce_type);
     }
 
     return -2;

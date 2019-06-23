@@ -42,6 +42,7 @@ int ERR_load_BN_strings(void);
 # define BN_F_BN_EXP                                      123
 # define BN_F_BN_EXPAND_INTERNAL                          120
 # define BN_F_BN_GENCB_NEW                                143
+# define BN_F_BN_GENERATE_DSA_DETERMINISTIC_NONCE         152
 # define BN_F_BN_GENERATE_DSA_NONCE                       140
 # define BN_F_BN_GENERATE_PRIME_EX                        141
 # define BN_F_BN_GF2M_MOD                                 131
