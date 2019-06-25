@@ -47,10 +47,12 @@ static int ecdsa_sign_setup(EC_KEY *eckey, BN_CTX *ctx_in,
     k = BN_secure_new();        /* this value is later returned in *kinvp */
     r = BN_new();               /* this value is later returned in *rp */
     X = BN_new();
+    
     if (k == NULL || r == NULL || X == NULL) {
         ECerr(EC_F_ECDSA_SIGN_SETUP, ERR_R_MALLOC_FAILURE);
         goto err;
     }
+    
     if ((tmp_point = EC_POINT_new(group)) == NULL) {
         ECerr(EC_F_ECDSA_SIGN_SETUP, ERR_R_EC_LIB);
         goto err;
@@ -125,6 +127,7 @@ static int ecdsa_sign_setup(EC_KEY *eckey, BN_CTX *ctx_in,
         BN_clear_free(k);
         BN_clear_free(r);
     }
+    
     if (ctx != ctx_in)
         BN_CTX_free(ctx);
     EC_POINT_free(tmp_point);
@@ -138,9 +141,10 @@ int ossl_ecdsa_sign(int type, const unsigned char *dgst, int dlen,
 {
     ECDSA_SIG *s;
     const BIGNUM *ckinv, *cr;
+    BIGNUM *tmp_kinv = NULL, *tmp_r = NULL;
+    
     if (kinv == NULL || r == NULL) {
-        BIGNUM *tmp_kinv = NULL, *tmp_r = NULL;
-        if (!ecdsa_sign_setup(eckey, BN_CTX_new(), &tmp_kinv, &tmp_r, dgst, dlen, type))
+        if (!ecdsa_sign_setup(eckey, NULL, &tmp_kinv, &tmp_r, dgst, dlen, type))
             return 0;
         ckinv = tmp_kinv;
         cr = tmp_r;
@@ -155,6 +159,8 @@ int ossl_ecdsa_sign(int type, const unsigned char *dgst, int dlen,
     }
     *siglen = i2d_ECDSA_SIG(s, &sig);
     ECDSA_SIG_free(s);
+    BN_clear_free(tmp_kinv);
+    BN_clear_free(tmp_r);
     return 1;
 }
 

@@ -36,7 +36,7 @@ typedef struct {
     size_t kdf_ukmlen;
     /* KDF output length */
     size_t kdf_outlen;
-	/* ECDSA K (nonce) type */
+    /* ECDSA K (nonce) type */
     char nonce_type;
 } EC_PKEY_CTX;
 
@@ -85,6 +85,7 @@ static int pkey_ec_copy(EVP_PKEY_CTX *dst, const EVP_PKEY_CTX *src)
     } else
         dctx->kdf_ukm = NULL;
     dctx->kdf_ukmlen = sctx->kdf_ukmlen;
+    dctx->nonce_type = sctx->nonce_type;
     return 1;
 }
 
@@ -335,13 +336,13 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
         *(unsigned char **)p2 = dctx->kdf_ukm;
         return dctx->kdf_ukmlen;
 
-	case EVP_PKEY_CTRL_EC_NONCE_TYPE:
-		if (p1 == -2)
-			return dctx->nonce_type;
-		if (p1 != EVP_PKEY_ECDSA_NONCE_RANDOM && p1 != EVP_PKEY_ECDSA_NONCE_DETERMINISTIC)
-			return -2;
-		dctx->nonce_type = p1;
-		return 1;
+    case EVP_PKEY_CTRL_EC_NONCE_TYPE:
+        if (p1 == -2)
+            return dctx->nonce_type;
+        if (p1 != EVP_PKEY_ECDSA_NONCE_RANDOM && p1 != EVP_PKEY_ECDSA_NONCE_DETERMINISTIC)
+            return -2;
+        dctx->nonce_type = p1;
+        return 1;
 
     case EVP_PKEY_CTRL_MD:
         if (EVP_MD_type((const EVP_MD *)p2) != NID_sha1 &&
@@ -412,8 +413,7 @@ static int pkey_ec_ctrl_str(EVP_PKEY_CTX *ctx,
         int co_mode;
         co_mode = atoi(value);
         return EVP_PKEY_CTX_set_ecdh_cofactor_mode(ctx, co_mode);
-    }
-    else if (strcmp(type, "ecdsa_nonce_type") == 0) {
+    } else if (strcmp(type, "ecdsa_nonce_type") == 0) {
         int nonce_type;
         if (strcmp(value, "deterministic") == 0)
             nonce_type = EVP_PKEY_ECDSA_NONCE_DETERMINISTIC;
@@ -423,7 +423,6 @@ static int pkey_ec_ctrl_str(EVP_PKEY_CTX *ctx,
             return -2;
         return EVP_PKEY_CTX_set_ecdsa_nonce_type(ctx, nonce_type);
     }
-
     return -2;
 }
 
