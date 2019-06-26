@@ -90,6 +90,8 @@ EVP_PKEY_CTX_set_ecdh_kdf_outlen
 EVP_PKEY_CTX_get_ecdh_kdf_outlen
 EVP_PKEY_CTX_set0_ecdh_kdf_ukm
 EVP_PKEY_CTX_get0_ecdh_kdf_ukm
+EVP_PKEY_CTX_set_ecdsa_nonce_type
+EVP_PKEY_CTX_get_ecdsa_nonce_type
 ENGINE_load_openssl
 ENGINE_load_dynamic
 ENGINE_load_padlock

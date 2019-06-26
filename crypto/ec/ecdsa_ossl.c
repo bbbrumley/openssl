@@ -78,7 +78,7 @@ static int ecdsa_sign_setup(EC_KEY *eckey, BN_CTX *ctx_in,
                         dgst, dlen, ctx);
 #ifndef FIPS_MODE
                 } else { /* deterministic */
-                    kgen = BN_generate_dsa_deterministic_nonce(k, order,
+                    kgen = bn_generate_dsa_deterministic_nonce(k, order,
                         EC_KEY_get0_private_key(eckey),
                         dgst, dlen, hashnid, ctx);
                 }

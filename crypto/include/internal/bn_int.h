@@ -110,4 +110,7 @@ int bn_rsa_fips186_4_derive_prime(BIGNUM *Y, BIGNUM *X, const BIGNUM *Xin,
                                   const BIGNUM *r1, const BIGNUM *r2, int nlen,
                                   const BIGNUM *e, BN_CTX *ctx, BN_GENCB *cb);
 
+int bn_generate_dsa_deterministic_nonce(BIGNUM* out, const BIGNUM* range,
+                                        const BIGNUM* priv, const unsigned char* message,
+                                        size_t message_len, int hash_type, BN_CTX* ctx);
 #endif

@@ -37,7 +37,7 @@ static const ERR_STRING_DATA BN_str_functs[] = {
     {ERR_PACK(ERR_LIB_BN, BN_F_BN_EXPAND_INTERNAL, 0), "bn_expand_internal"},
     {ERR_PACK(ERR_LIB_BN, BN_F_BN_GENCB_NEW, 0), "BN_GENCB_new"},
     {ERR_PACK(ERR_LIB_BN, BN_F_BN_GENERATE_DSA_DETERMINISTIC_NONCE, 0),
-     "BN_generate_dsa_deterministic_nonce"},
+     "bn_generate_dsa_deterministic_nonce"},
     {ERR_PACK(ERR_LIB_BN, BN_F_BN_GENERATE_DSA_NONCE, 0),
      "BN_generate_dsa_nonce"},
     {ERR_PACK(ERR_LIB_BN, BN_F_BN_GENERATE_PRIME_EX, 0),

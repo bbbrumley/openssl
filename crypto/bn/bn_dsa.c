@@ -14,6 +14,7 @@
 # include <openssl/hmac.h>
 # include <openssl/objects.h>
 # include "internal/cryptlib.h"
+# include "internal/bn_int.h"
 
 static int bits2int(BIGNUM *out, int qlen,
     const unsigned char *message, size_t message_len)
@@ -44,7 +45,7 @@ static int bits2octects(unsigned char *out, const BIGNUM  *range,
     BN_clear_free(num);
     return 1;
 }
-int BN_generate_dsa_deterministic_nonce(BIGNUM *out, const BIGNUM *range,
+int bn_generate_dsa_deterministic_nonce(BIGNUM *out, const BIGNUM *range,
     const BIGNUM *priv, const unsigned char *message,
     size_t message_len, int hash_type, BN_CTX *ctx)
 {

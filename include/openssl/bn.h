@@ -510,9 +510,6 @@ int (*BN_nist_mod_func(const BIGNUM *p)) (BIGNUM *r, const BIGNUM *a,
 int BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
                           const BIGNUM *priv, const unsigned char *message,
                           size_t message_len, BN_CTX *ctx);
-int BN_generate_dsa_deterministic_nonce(BIGNUM* out, const BIGNUM* range,
-    const BIGNUM* priv, const unsigned char* message,
-    size_t message_len, int hash_type, BN_CTX* ctx);
 
 /* Primes from RFC 2409 */
 BIGNUM *BN_get_rfc2409_prime_768(BIGNUM *bn);
