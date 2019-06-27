@@ -1228,7 +1228,7 @@ int ECDSA_sign_setup(EC_KEY *eckey, BN_CTX *ctx, BIGNUM **kinv, BIGNUM **rp);
 
 /** Computes ECDSA signature of a given hash value using the supplied
  *  private key (note: sig must point to ECDSA_size(eckey) bytes of memory).
- *  \param  type     this parameter is ignored
+ *  \param  type     non-positive value will be ignored, otherwise, hash nid for RFC6979 deterministic signature generation
  *  \param  dgst     pointer to the hash value to sign
  *  \param  dgstlen  length of the hash value
  *  \param  sig      memory for the DER encoded created signature
@@ -1241,7 +1241,7 @@ int ECDSA_sign(int type, const unsigned char *dgst, int dgstlen,
 
 /** Computes ECDSA signature of a given hash value using the supplied
  *  private key (note: sig must point to ECDSA_size(eckey) bytes of memory).
- *  \param  type     this parameter is ignored
+ *  \param  type     non-positive value will be ignored, otherwise, hash nid for RFC6979 deterministic signature generation
  *  \param  dgst     pointer to the hash value to sign
  *  \param  dgstlen  length of the hash value
  *  \param  sig      buffer to hold the DER encoded signature

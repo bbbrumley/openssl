@@ -63,6 +63,7 @@ int bn_generate_dsa_deterministic_nonce(BIGNUM *out, const BIGNUM *range,
         return 0;
     }
 
+    /* step a */
     if ((hctx = HMAC_CTX_new()) == NULL)
         return 0;
 
@@ -80,9 +81,11 @@ int bn_generate_dsa_deterministic_nonce(BIGNUM *out, const BIGNUM *range,
         !bits2octects(h, range, message, message_len, ctx))
         goto cleanup;
 
+    /* step b,c */
     memset(V, 1, hlen);
     memset(K, 0, hlen);
 
+    /* step d */
     if (!HMAC_CTX_reset(hctx) ||
         !HMAC_Init_ex(hctx, K, hlen, evp_md, NULL) ||
         !HMAC_Update(hctx, V, hlen) ||
@@ -92,12 +95,14 @@ int bn_generate_dsa_deterministic_nonce(BIGNUM *out, const BIGNUM *range,
         !HMAC_Final(hctx, K, NULL))
         goto cleanup;
 
+    /* step e */
     if (!HMAC_CTX_reset(hctx) ||
         !HMAC_Init_ex(hctx, K, hlen, evp_md, NULL) ||
         !HMAC_Update(hctx, V, hlen) ||
         !HMAC_Final(hctx, V, NULL))
         goto cleanup;
 
+    /* step f */
     if (!HMAC_CTX_reset(hctx) ||
         !HMAC_Init_ex(hctx, K, hlen, evp_md, NULL) ||
         !HMAC_Update(hctx, V, hlen) ||
@@ -107,14 +112,17 @@ int bn_generate_dsa_deterministic_nonce(BIGNUM *out, const BIGNUM *range,
         !HMAC_Final(hctx, K, NULL))
         goto cleanup;
 
+    /* step g */
     if (!HMAC_CTX_reset(hctx) ||
         !HMAC_Init_ex(hctx, K, hlen, evp_md, NULL) ||
         !HMAC_Update(hctx, V, hlen) ||
         !HMAC_Final(hctx, V, NULL))
         goto cleanup;
 
+    /* step h */
     while (1)
     {
+        /* step h.1,h.2 */
         int offlen = 0;
         int i;
         for (i = 0; i < rlen; i += offlen)
@@ -127,10 +135,12 @@ int bn_generate_dsa_deterministic_nonce(BIGNUM *out, const BIGNUM *range,
             offlen = ((rlen - i) < hlen) ? (rlen - i) : hlen;
             memcpy(T + i, V, offlen);
         }
+        /* step h.3 */
         bits2int(out, qlen, T, rlen);
         if ((!BN_is_zero(out)) && (!BN_is_one(out)) && (BN_cmp(out, range) < 0))
             break;
 
+        /* step h.otherwise */
         if (!HMAC_CTX_reset(hctx) ||
             !HMAC_Init_ex(hctx, K, hlen, evp_md, NULL) ||
             !HMAC_Update(hctx, V, hlen) ||

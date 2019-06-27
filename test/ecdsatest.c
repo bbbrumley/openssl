@@ -29,6 +29,7 @@ static int use_fake = 0;
 static const char *numbers[2];
 static size_t crv_len = 0;
 static EC_builtin_curve *curves = NULL;
+static int fbytes_counter = 0;
 
 static int change_rand(void)
 {
@@ -55,7 +56,6 @@ static int restore_rand(void)
 static int fbytes(unsigned char *buf, int num)
 {
     int ret = 0;
-    static int fbytes_counter = 0;
     BIGNUM *tmp = NULL;
 
     if (use_fake == 0)
@@ -166,6 +166,8 @@ static int x9_62_tests(int n)
     /* restore the RNG source */
     if (!TEST_true(restore_rand()))
         ret = 0;
+    /* restore counter */
+    fbytes_counter = 0;
 
     OPENSSL_free(message);
     OPENSSL_free(pbuf);
@@ -315,6 +317,108 @@ static int test_builtin(int n)
     OPENSSL_free(sig);
     return ret;
 }
+
+/*-
+ * This function hijacks the RNG to feed it the chosen ECDSA key.
+ * The ECDSA Test Vectors are from:
+ * - RFC6979 Appendix A.2
+ *
+ * Tests the library can successfully:
+ * - generate public keys that matches those Test Vectors
+ * - create ECDSA signatures that match those Test Vectors
+ * - accept those signatures as valid
+ */
+static int rfc6979_tests(int n) {
+    int nid, md_nid, ret = 0;
+    const char *r_in = NULL,  *s_in = NULL,  *tbs = NULL;
+    unsigned char *pbuf = NULL,  *qbuf = NULL,  *message = NULL;
+    unsigned char digest[EVP_MAX_MD_SIZE];
+    unsigned int dgst_len = 0;
+    long q_len, msg_len = 0;
+    size_t p_len;
+    EVP_MD_CTX *mctx = NULL;
+    EC_KEY *key = NULL;
+    const unsigned char* sig_ptr;
+    unsigned char *sigbuf = NULL;
+    unsigned int sig_len = 0;
+    ECDSA_SIG *signature = NULL;
+    BIGNUM *r = NULL,  *s = NULL;
+    const BIGNUM *sig_r = NULL,  *sig_s = NULL;
+
+    nid = ecdsa_rfc6979_tvs[n].nid;
+    md_nid = ecdsa_rfc6979_tvs[n].md_nid;
+    r_in = ecdsa_rfc6979_tvs[n].r;
+    s_in = ecdsa_rfc6979_tvs[n].s;
+    tbs = ecdsa_rfc6979_tvs[n].msg;
+    numbers[0] = ecdsa_rfc6979_tvs[n].d;
+    numbers[1] = NULL;
+
+    TEST_info("ECDSA deterministic signature test for curve %s", OBJ_nid2sn(nid));
+
+    if (!TEST_ptr(mctx = EVP_MD_CTX_new())
+        /* get the message digest */
+        || !TEST_ptr(message = OPENSSL_hexstr2buf(tbs, &msg_len))
+        || !TEST_true(EVP_DigestInit_ex(mctx, EVP_get_digestbynid(md_nid), NULL))
+        || !TEST_true(EVP_DigestUpdate(mctx, message, msg_len))
+        || !TEST_true(EVP_DigestFinal_ex(mctx, digest, &dgst_len))
+        /* create the key */
+        || !TEST_ptr(key = EC_KEY_new_by_curve_name(nid))
+        /* load Test Vector variables */
+        || !TEST_ptr(r = BN_new())
+        || !TEST_ptr(s = BN_new())
+        || !TEST_true(BN_hex2bn(&r, r_in))
+        || !TEST_true(BN_hex2bn(&s, s_in))
+        /* swap the RNG source */
+        || !TEST_true(change_rand()))
+        goto err;
+
+    /* public key must match Test Vector */
+    use_fake = 1;
+    if (!TEST_true(EC_KEY_generate_key(key))
+        || !TEST_true(p_len = EC_KEY_key2buf(key, POINT_CONVERSION_UNCOMPRESSED,
+            &pbuf, NULL))
+        || !TEST_ptr(qbuf = OPENSSL_hexstr2buf(ecdsa_rfc6979_tvs[n].Q, &q_len))
+        || !TEST_int_eq(q_len, p_len)
+        || !TEST_mem_eq(qbuf, q_len, pbuf, p_len))
+        goto err;
+
+    /* create deterministic signature */
+    use_fake = 0;
+    if (!TEST_ptr(sigbuf = OPENSSL_malloc(sig_len = ECDSA_size(key)))
+        || !TEST_true(ECDSA_sign(md_nid, digest, dgst_len, sigbuf, &sig_len, key))
+        || !TEST_int_le(sig_len, ECDSA_size(key))
+        || !TEST_ptr(sig_ptr = sigbuf)
+        || !TEST_ptr(signature = d2i_ECDSA_SIG(NULL, &sig_ptr, sig_len))
+        /* verify the signature */
+        || !TEST_int_eq(ECDSA_do_verify(digest, dgst_len, signature, key), 1))
+        goto err;
+
+    /* compare the created signature with the expected signature */
+    ECDSA_SIG_get0(signature, &sig_r, &sig_s);
+    if (!TEST_BN_eq(sig_r, r)
+        || !TEST_BN_eq(sig_s, s))
+        goto err;
+
+    ret = 1;
+
+err:
+    /* restore the RNG source */
+    if (!TEST_true(restore_rand()))
+        ret = 0;
+    /* restore counter */
+    fbytes_counter = 0;
+
+    OPENSSL_free(message);
+    OPENSSL_free(pbuf);
+    OPENSSL_free(qbuf);
+    OPENSSL_free(sigbuf);
+    EC_KEY_free(key);
+    ECDSA_SIG_free(signature);
+    BN_free(r);
+    BN_free(s);
+    EVP_MD_CTX_free(mctx);
+    return ret;
+}
 #endif
 
 int setup_tests(void)
@@ -329,6 +433,7 @@ int setup_tests(void)
         return 0;
     ADD_ALL_TESTS(test_builtin, crv_len);
     ADD_ALL_TESTS(x9_62_tests, OSSL_NELEM(ecdsa_cavs_kats));
+    ADD_ALL_TESTS(rfc6979_tests, OSSL_NELEM(ecdsa_rfc6979_tvs));
 #endif
     return 1;
 }
