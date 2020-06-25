@@ -615,6 +615,22 @@ const EC_METHOD *EC_GFp_s390x_nistp384_method(void);
 const EC_METHOD *EC_GFp_s390x_nistp521_method(void);
 #endif
 
+/* TODO BBB ECCKiila */
+const EC_METHOD *ec_GFp_secp192r1_method(void);
+const EC_METHOD *ec_GFp_brainpoolP192t1_method(void);
+const EC_METHOD *ec_GFp_secp256r1_method(void);
+const EC_METHOD *ec_GFp_secp256k1_method(void);
+const EC_METHOD *ec_GFp_SM2_method(void);
+const EC_METHOD *ec_GFp_brainpoolP256t1_method(void);
+const EC_METHOD *ec_GFp_brainpoolP320t1_method(void);
+const EC_METHOD *ec_GFp_secp384r1_method(void);
+const EC_METHOD *ec_GFp_brainpoolP384t1_method(void);
+const EC_METHOD *ec_GFp_brainpoolP512t1_method(void);
+const EC_METHOD *ec_GFp_secp521r1_method(void);
+const EC_METHOD *ec_GFp_MDCurve201601_method(void);
+const EC_METHOD *ec_GFp_Wei448_method(void);
+const EC_METHOD *ec_GFp_Wei25519_method(void);
+
 size_t ec_key_simple_priv2oct(const EC_KEY *eckey,
                               unsigned char *buf, size_t len);
 int ec_key_simple_oct2priv(EC_KEY *eckey, const unsigned char *buf, size_t len);
