@@ -5066,6 +5066,18 @@
 #define NID_ED448               1088
 #define OBJ_ED448               1L,3L,101L,113L
 
+#define SN_Wei25519             "Wei25519"
+#define NID_Wei25519            1219
+#define OBJ_Wei25519            1L,3L,6L,1L,4L,1L,50263L,0L,0L,18442L
+
+#define SN_MDCurve201601                "MDCurve201601"
+#define NID_MDCurve201601               1220
+#define OBJ_MDCurve201601               1L,3L,6L,1L,4L,1L,50263L,0L,0L,26537L
+
+#define SN_Wei448               "Wei448"
+#define NID_Wei448              1221
+#define OBJ_Wei448              1L,3L,6L,1L,4L,1L,50263L,0L,0L,12536L
+
 #define SN_kx_rsa               "KxRSA"
 #define LN_kx_rsa               "kx-rsa"
 #define NID_kx_rsa              1037

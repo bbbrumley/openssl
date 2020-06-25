@@ -10,7 +10,7 @@
  */
 
 /* Serialized OID's */
-static const unsigned char so[7845] = {
+static const unsigned char so[7883] = {
     0x2A,0x86,0x48,0x86,0xF7,0x0D,                 /* [    0] OBJ_rsadsi */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x01,            /* [    6] OBJ_pkcs */
     0x2A,0x86,0x48,0x86,0xF7,0x0D,0x02,0x02,       /* [   13] OBJ_md2 */
@@ -1086,9 +1086,12 @@ static const unsigned char so[7845] = {
     0x2B,0x06,0x01,0x05,0x05,0x07,0x08,0x05,       /* [ 7820] OBJ_XmppAddr */
     0x2B,0x06,0x01,0x05,0x05,0x07,0x08,0x07,       /* [ 7828] OBJ_SRVName */
     0x2B,0x06,0x01,0x05,0x05,0x07,0x08,0x08,       /* [ 7836] OBJ_NAIRealm */
+    0x2B,0x06,0x01,0x04,0x01,0x83,0x88,0x57,0x00,0x00,0x81,0x90,0x0A,  /* [ 7844] OBJ_Wei25519 */
+    0x2B,0x06,0x01,0x04,0x01,0x83,0x88,0x57,0x00,0x00,0x81,0xCF,0x29,  /* [ 7857] OBJ_MDCurve201601 */
+    0x2B,0x06,0x01,0x04,0x01,0x83,0x88,0x57,0x00,0x00,0xE1,0x78,  /* [ 7870] OBJ_Wei448 */
 };
 
-#define NUM_NID 1219
+#define NUM_NID 1222
 static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"UNDEF", "undefined", NID_undef},
     {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
@@ -2309,9 +2312,12 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"modp_6144", "modp_6144", NID_modp_6144},
     {"modp_8192", "modp_8192", NID_modp_8192},
     {"KxGOST18", "kx-gost18", NID_kx_gost18},
+    {"Wei25519", "Wei25519", NID_Wei25519, 13, &so[7844]},
+    {"MDCurve201601", "MDCurve201601", NID_MDCurve201601, 13, &so[7857]},
+    {"Wei448", "Wei448", NID_Wei448, 12, &so[7870]},
 };
 
-#define NUM_SN 1210
+#define NUM_SN 1213
 static const unsigned int sn_objs[NUM_SN] = {
      364,    /* "AD_DVCS" */
      419,    /* "AES-128-CBC" */
@@ -2502,6 +2508,7 @@ static const unsigned int sn_objs[NUM_SN] = {
        4,    /* "MD5" */
      114,    /* "MD5-SHA1" */
       95,    /* "MDC2" */
+    1220,    /* "MDCurve201601" */
      911,    /* "MGF1" */
      388,    /* "Mail" */
      393,    /* "NULL" */
@@ -2607,6 +2614,8 @@ static const unsigned int sn_objs[NUM_SN] = {
     1021,    /* "TLS1-PRF" */
      458,    /* "UID" */
        0,    /* "UNDEF" */
+    1219,    /* "Wei25519" */
+    1221,    /* "Wei448" */
     1034,    /* "X25519" */
     1035,    /* "X448" */
       11,    /* "X500" */
@@ -3525,7 +3534,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1093,    /* "x509ExtAdmission" */
 };
 
-#define NUM_LN 1210
+#define NUM_LN 1213
 static const unsigned int ln_objs[NUM_LN] = {
      363,    /* "AD Time Stamping" */
      405,    /* "ANSI X9.62" */
@@ -3626,6 +3635,7 @@ static const unsigned int ln_objs[NUM_LN] = {
      665,    /* "Inherit all" */
      647,    /* "International Organizations" */
      142,    /* "Invalidity Date" */
+    1220,    /* "MDCurve201601" */
      504,    /* "MIME MHS" */
      388,    /* "Mail" */
      383,    /* "Management" */
@@ -3706,6 +3716,8 @@ static const unsigned int ln_objs[NUM_LN] = {
      129,    /* "TLS Web Server Authentication" */
      133,    /* "Time Stamping" */
      375,    /* "Trust Root" */
+    1219,    /* "Wei25519" */
+    1221,    /* "Wei448" */
     1034,    /* "X25519" */
     1035,    /* "X448" */
       12,    /* "X509" */
@@ -4739,7 +4751,7 @@ static const unsigned int ln_objs[NUM_LN] = {
      125,    /* "zlib compression" */
 };
 
-#define NUM_OBJ 1081
+#define NUM_OBJ 1084
 static const unsigned int obj_objs[NUM_OBJ] = {
        0,    /* OBJ_undef                        0 */
      181,    /* OBJ_iso                          1 */
@@ -5811,6 +5823,7 @@ static const unsigned int obj_objs[NUM_OBJ] = {
      957,    /* OBJ_jurisdictionCountryName      1 3 6 1 4 1 311 60 2 1 3 */
     1056,    /* OBJ_blake2b512                   1 3 6 1 4 1 1722 12 2 1 16 */
     1057,    /* OBJ_blake2s256                   1 3 6 1 4 1 1722 12 2 2 8 */
+    1221,    /* OBJ_Wei448                       1 3 6 1 4 1 50263 0 0 12536 */
     1159,    /* OBJ_dstu4145be                   1 2 804 2 1 1 1 1 3 1 1 1 1 */
     1160,    /* OBJ_uacurve0                     1 2 804 2 1 1 1 1 3 1 1 2 0 */
     1161,    /* OBJ_uacurve1                     1 2 804 2 1 1 1 1 3 1 1 2 1 */
@@ -5822,4 +5835,6 @@ static const unsigned int obj_objs[NUM_OBJ] = {
     1167,    /* OBJ_uacurve7                     1 2 804 2 1 1 1 1 3 1 1 2 7 */
     1168,    /* OBJ_uacurve8                     1 2 804 2 1 1 1 1 3 1 1 2 8 */
     1169,    /* OBJ_uacurve9                     1 2 804 2 1 1 1 1 3 1 1 2 9 */
+    1219,    /* OBJ_Wei25519                     1 3 6 1 4 1 50263 0 0 18442 */
+    1220,    /* OBJ_MDCurve201601                1 3 6 1 4 1 50263 0 0 26537 */
 };
