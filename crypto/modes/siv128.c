@@ -306,7 +306,8 @@ end:
 }
 
 /*
- * Provide any data to be decrypted. This can be called once.
+ * Provide any data to be decrypted. This can be called once. The tag is
+ * checked here but the result is only reported by ossl_siv128_finish().
  */
 int ossl_siv128_decrypt(SIV128_CONTEXT *ctx,
     const unsigned char *in, unsigned char *out,
@@ -335,12 +336,9 @@ int ossl_siv128_decrypt(SIV128_CONTEXT *ctx,
     for (i = 0; i < SIV_LEN; i++)
         t.byte[i] ^= p[i];
 
-    if ((t.word[0] | t.word[1]) != 0) {
-        OPENSSL_cleanse(out, len);
-        goto end;
-    }
+    /* tag mismatch is reported by finish, as for the other AEADs */
     ret = 1;
-    final_ret_value = 0;
+    final_ret_value = (t.word[0] | t.word[1]) != 0;
 end:
     ctx->final_ret = final_ret_value;
     return ret;

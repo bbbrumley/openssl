@@ -1659,9 +1659,10 @@ calls). For SIV mode the taglen must be 16.
 
 SIV mode makes two passes over the input data, thus, only one call to
 EVP_CipherUpdate(), EVP_EncryptUpdate() or EVP_DecryptUpdate() should be made
-with I<out> set to a non-NULL value. A call to EVP_DecryptFinal() or
-EVP_CipherFinal() is not required, but will indicate if the update
-operation succeeded.
+with I<out> set to a non-NULL value, and all AAD must be supplied before it.
+A further AAD or data update after that call fails with
+B<PROV_R_UPDATE_CALL_OUT_OF_ORDER>. When decrypting, the tag is verified by
+EVP_DecryptFinal() or EVP_CipherFinal(), which must therefore be called.
 
 =head2 ChaCha20-Poly1305
 
