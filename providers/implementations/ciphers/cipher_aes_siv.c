@@ -93,6 +93,9 @@ static int siv_init(void *vctx, const unsigned char *key, size_t keylen,
         }
         if (!ctx->hw->initkey(ctx, key, ctx->keylen))
             return 0;
+    } else if (ctx->siv.crypto_ok == 0) {
+        /* new message under a spent key: aad ok, payload not */
+        ctx->siv.crypto_ok = 2;
     }
     return aes_siv_set_ctx_params(ctx, params);
 }

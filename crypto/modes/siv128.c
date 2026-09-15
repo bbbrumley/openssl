@@ -284,7 +284,7 @@ int ossl_siv128_encrypt(SIV128_CONTEXT *ctx,
     int final_ret_value = -1;
 
     /* can only do one crypto operation */
-    if (ctx->crypto_ok == 0)
+    if (ctx->crypto_ok == 0 || ctx->crypto_ok == 2)
         goto end;
     ctx->crypto_ok--;
 
@@ -320,7 +320,7 @@ int ossl_siv128_decrypt(SIV128_CONTEXT *ctx,
     int final_ret_value = -1;
 
     /* can only do one crypto operation */
-    if (ctx->crypto_ok == 0)
+    if (ctx->crypto_ok == 0 || ctx->crypto_ok == 2)
         goto end;
     ctx->crypto_ok--;
 

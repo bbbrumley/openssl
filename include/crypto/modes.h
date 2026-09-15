@@ -223,8 +223,8 @@ struct siv128_context {
     EVP_CIPHER_CTX *cipher_ctx;
     EVP_MAC *mac;
     EVP_MAC_CTX *mac_ctx_init;
-    int final_ret; /* -1: no payload since init, 0: verified, 1: invalid */
-    int crypto_ok;
+    int final_ret; /* -1: not verified, 0: verified, 1: invalid */
+    int crypto_ok; /* 1: payload ok, 0: spent, 2: spent but reinit, <0: speed */
 };
 
 #endif /* OPENSSL_NO_SIV */

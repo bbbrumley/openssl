@@ -129,7 +129,7 @@ static int aes_siv_cipher(void *vctx, unsigned char *out,
 
     /* Deal with associated data, which may not follow the payload */
     if (out == NULL) {
-        if (sctx->crypto_ok == 0 && sctx->final_ret != -1) {
+        if (sctx->crypto_ok == 0) {
             ERR_raise(ERR_LIB_PROV, PROV_R_UPDATE_CALL_OUT_OF_ORDER);
             return 0;
         }
@@ -137,7 +137,7 @@ static int aes_siv_cipher(void *vctx, unsigned char *out,
     }
 
     /* only one payload per key (speed mode exempt) */
-    if (sctx->crypto_ok == 0) {
+    if (sctx->crypto_ok == 0 || sctx->crypto_ok == 2) {
         sctx->final_ret = 1;
         ERR_raise(ERR_LIB_PROV, PROV_R_UPDATE_CALL_OUT_OF_ORDER);
         return 0;
